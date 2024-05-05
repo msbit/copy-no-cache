@@ -46,19 +46,20 @@ int process(const char *infilename, const char *outfilename) {
   }
 
   uint64_t before = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
-  int totalcount = 0;
+  ssize_t totalcount = 0;
   for (;;) {
-    int count = read(infd, buffer, 1024 * 1024);
-    if (count == 0) {
+    ssize_t r = read(infd, buffer, 1024 * 1024);
+    if (r == 0) {
       break;
     }
-    if (count == -1) {
+    if (r == -1) {
       ret = 1;
       goto defer_malloc;
     }
 
-    totalcount += count;
-    write(outfd, buffer, 1024 * 1024);
+    totalcount += r;
+    for (ssize_t w = 0; w < r; w += write(outfd, buffer, 1024 * 1024))
+      ;
   }
   uint64_t after = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
   uint64_t delta = (after - before) / 1000000;
