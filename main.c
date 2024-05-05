@@ -38,7 +38,7 @@ int process(const char *infilename, const char *outfilename) {
     goto defer_outfd;
   }
 
-  char *buffer = malloc(1024 * 1024);
+  char *buffer = calloc(1024 * 1024, sizeof(char));
   if (buffer == NULL) {
     perror("malloc");
     ret = 1;
