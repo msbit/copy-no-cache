@@ -1,4 +1,5 @@
 CFLAGS := -Wall -Wextra
+CFLAGS += -O2
 
 main: main.o
 
