@@ -26,7 +26,7 @@ int process(const char *infilename, const char *outfilename) {
   }
 
   int outfd = open(outfilename, O_WRONLY);
-  if (infd == -1) {
+  if (outfd == -1) {
     perror("open");
     ret = 1;
     goto defer_infd;
@@ -49,17 +49,28 @@ int process(const char *infilename, const char *outfilename) {
   int totalcount = 0;
   for (;;) {
     int count = read(infd, buffer, 1024 * 1024);
-    if (count <= 0) {
+    if (count == 0) {
       break;
     }
+    if (count == -1) {
+      ret = 1;
+      goto defer_malloc;
+    }
+
     totalcount += count;
     write(outfd, buffer, 1024 * 1024);
   }
   uint64_t after = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
   uint64_t delta = (after - before) / 1000000;
-  printf("%s -> %s %llu bytes/ms\n", infilename, outfilename, totalcount / delta);
+  printf("%s -> %s ", infilename, outfilename);
+  if (delta == 0) {
+    printf("∞ ");
+  } else {
+    printf("%llu ", totalcount / delta);
+  }
+  puts("bytes/ms");
 
-//defer_malloc:
+defer_malloc:
   free(buffer);
 
 defer_outfd:
