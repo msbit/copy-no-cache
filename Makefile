@@ -1,7 +1,7 @@
 CFLAGS := -Wall -Wextra
 CFLAGS += -O2
 
-main: main.o
+copy-no-cache: copy-no-cache.o
 
 clean:
-	rm -f main main.o
+	rm -f copy-no-cache copy-no-cache.o
