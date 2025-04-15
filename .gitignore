@@ -1,2 +1,4 @@
 copy-no-cache
+copy-no-cache.darwin.o
+copy-no-cache.linux.o
 copy-no-cache.o

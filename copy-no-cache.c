@@ -2,10 +2,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
 #include <unistd.h>
 
 int process(const char *infilename, const char *outfilename);
+int disable_cache(int fd);
+uint64_t timestamp(void);
 
 int main(int argc, char **argv) {
   for (int i = 1; i < argc; i++) {
@@ -32,8 +33,7 @@ int process(const char *infilename, const char *outfilename) {
     goto defer_infd;
   }
 
-  if (fcntl(infd, F_NOCACHE, 1) == -1) {
-    perror("fcntl");
+  if (disable_cache(infd) == 1) {
     ret = 1;
     goto defer_outfd;
   }
@@ -45,7 +45,7 @@ int process(const char *infilename, const char *outfilename) {
     goto defer_outfd;
   }
 
-  uint64_t before = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+  uint64_t before = timestamp();
   ssize_t totalcount = 0;
   for (;;) {
     ssize_t r = read(infd, buffer, 1024 * 1024);
@@ -61,7 +61,7 @@ int process(const char *infilename, const char *outfilename) {
     for (ssize_t w = 0; w < r; w += write(outfd, buffer, 1024 * 1024))
       ;
   }
-  uint64_t after = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+  uint64_t after = timestamp();
   uint64_t delta = (after - before) / 1000000;
   printf("%s -> %s ", infilename, outfilename);
   if (delta == 0) {
